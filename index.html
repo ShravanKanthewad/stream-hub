@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StreamHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0A;
+    --surface:#1A1A1A;
+    --surface-2:#141414;
+    --border:#2A2A2A;
+    --accent:#E50914;
+    --accent-dark:#B00610;
+    --text:#FFFFFF;
+    --text-secondary:#A3A3A3;
+    --radius-card:8px;
+    --radius-hero:12px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); }
+  body{ padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); -webkit-font-smoothing:antialiased; }
+  img{ max-width:100%; display:block; }
+  button{ font-family:inherit; cursor:pointer; }
+  a{ color:inherit; text-decoration:none; }
+
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:#333; border-radius:4px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; background:rgba(10,10,10,0.88); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .logo{ font-size:22px; font-weight:800; letter-spacing:-0.02em; color:var(--accent); background:none; border:none; }
+  nav.mainnav{ display:flex; gap:28px; }
+  nav.mainnav button{
+    background:none; border:none; color:var(--text-secondary); font-size:14px; font-weight:600;
+    padding:6px 2px; border-bottom:2px solid transparent;
+  }
+  nav.mainnav button.active{ color:var(--text); border-bottom-color:var(--accent); }
+  .header-icons{ display:flex; align-items:center; gap:18px; }
+  .icon-btn{ background:none; border:none; color:var(--text); display:flex; align-items:center; justify-content:center; }
+  .avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#E50914,#7a0710); flex-shrink:0; }
+  @media (max-width:768px){ nav.mainnav{ display:none; } }
+
+  /* ---------- Bottom tab bar (mobile) ---------- */
+  nav.tabbar{
+    display:none; position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:rgba(10,10,10,0.95); backdrop-filter:blur(10px);
+    border-top:1px solid var(--border);
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom,0px)) 0;
+    justify-content:space-around;
+  }
+  nav.tabbar button{
+    background:none; border:none; color:var(--text-secondary);
+    display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10.5px; font-weight:600;
+  }
+  nav.tabbar button.active{ color:var(--accent); }
+  nav.tabbar svg{ width:22px; height:22px; }
+  @media (max-width:768px){
+    nav.tabbar{ display:flex; }
+    main{ padding-bottom:76px !important; }
+  }
+
+  main{ max-width:1400px; margin:0 auto; padding:0 24px 60px 24px; }
+  @media (max-width:768px){ main{ padding:0 16px 40px 16px; } }
+
+  .view{ display:none; animation: fadeUp .5s ease both; }
+  .view.active{ display:block; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ .view{ animation:none; } }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative; margin-top:24px; border-radius:var(--radius-hero); overflow:hidden;
+    height:56vh; min-height:320px; max-height:520px;
+    display:flex; align-items:flex-end;
+  }
+  .hero-bg{ position:absolute; top:0; left:0; right:0; bottom:0; z-index:0; }
+  .hero-scrim{ position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(0deg, rgba(10,10,10,0.97) 20%, rgba(10,10,10,0.55) 50%, rgba(10,10,10,0.1) 100%); z-index:1; }
+  .hero-content{ position:relative; z-index:2; padding:40px; max-width:640px; }
+  .hero-content h1{ font-size:40px; font-weight:800; margin:0 0 12px 0; letter-spacing:-0.01em; line-height:1.08; }
+  .hero-content p{ font-size:15px; color:#EDEDED; line-height:1.6; margin:0 0 22px 0; }
+  @media (max-width:768px){
+    .hero{ height:66vh; min-height:380px; }
+    .hero-content{ padding:22px; }
+    .hero-content h1{ font-size:28px; }
+  }
+
+  .btn{ display:inline-flex; align-items:center; gap:8px; padding:12px 24px; border-radius:6px; font-size:14.5px; font-weight:700; border:none; }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:var(--accent-dark); }
+  .btn-outline{ background:transparent; border:1.5px solid rgba(255,255,255,0.7); color:#fff; }
+  .btn-outline:hover{ background:#fff; color:#0A0A0A; border-color:#fff; }
+  .btn-row{ display:flex; gap:12px; flex-wrap:wrap; }
+
+  /* ---------- Rows / cards ---------- */
+  .row-section{ margin-top:40px; }
+  .row-title{ font-size:20px; font-weight:700; margin:0 0 16px 0; }
+  .card-row{ display:flex; gap:14px; overflow-x:auto; padding-bottom:6px; scroll-snap-type:x proximity; }
+  .card{
+    flex:0 0 auto; width:160px; scroll-snap-align:start; cursor:pointer;
+    transition: transform .2s ease;
+  }
+  .card:hover{ transform:scale(1.045); }
+  .poster{
+    width:160px; height:230px; border-radius:var(--radius-card); position:relative; overflow:hidden;
+    display:flex; align-items:flex-end; padding:10px; border:1px solid var(--border);
+  }
+  .poster span.title-on-poster{ font-size:13px; font-weight:700; line-height:1.25; text-shadow:0 2px 8px rgba(0,0,0,0.8); position:relative; z-index:2; }
+  .poster img.poster-bg{ position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1; pointer-events:none; }
+  .poster:after{ content:''; position:absolute; left:0; right:0; bottom:0; height:55%; background:linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%); z-index:1; pointer-events:none; }
+  .cost-badge{ position:absolute; top:8px; right:8px; z-index:2; font-size:10px; font-weight:800; color:#0A0A0A; padding:3px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:0.3px; }
+  .cost-badge-inline{ font-size:10.5px; font-weight:800; color:#0A0A0A; padding:3px 9px; border-radius:10px; text-transform:uppercase; letter-spacing:0.3px; margin-left:12px; }
+  .card .cardlabel{ font-size:13px; font-weight:600; margin-top:8px; color:var(--text); }
+  .card .cardmeta{ font-size:11.5px; color:var(--text-secondary); margin-top:2px; }
+  .progress-track{ height:3px; background:#3a3a3a; border-radius:2px; margin-top:8px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--accent); }
+  @media (max-width:768px){
+    .card, .poster{ width:128px; }
+    .poster{ height:186px; }
+  }
+
+  /* ---------- Spoiler-Safe Mode ---------- */
+  .spoiler-poster{ cursor:pointer; }
+  .spoiler-poster .spoiler-inner{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; width:80%; z-index:2; }
+  .spoiler-poster img.poster-bg{ filter:blur(12px) brightness(.75) saturate(1.2); transform:scale(1.2); }
+  .spoiler-poster .spoiler-icon{ font-size:28px; display:block; margin-bottom:6px; }
+  .spoiler-poster .spoiler-label{ font-size:11px; font-weight:700; color:#fff; text-shadow:0 2px 6px rgba(0,0,0,0.7); line-height:1.5; }
+  .spoiler-poster .spoiler-label em{ font-style:normal; font-weight:500; color:rgba(255,255,255,0.75); font-size:10px; }
+  .spoiler-toggle{ display:flex; align-items:center; gap:8px; }
+  .spoiler-toggle .sw{ width:38px; height:22px; border-radius:12px; background:#333; position:relative; border:none; flex-shrink:0; }
+  .spoiler-toggle .sw .dot{ width:16px; height:16px; border-radius:50%; background:#fff; position:absolute; top:3px; left:3px; transition:left .15s ease; }
+  .spoiler-toggle .sw.on{ background:var(--accent); }
+  .spoiler-toggle .sw.on .dot{ left:19px; }
+  .spoiler-toggle .lbl{ font-size:12.5px; color:var(--text-secondary); font-weight:600; white-space:nowrap; }
+  @media (max-width:768px){ .spoiler-toggle .lbl{ display:none; } }
+
+  /* ---------- Mood picker ---------- */
+  .mood-section{ margin-top:36px; }
+  .mood-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .mood-chip{ padding:10px 18px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); font-size:13.5px; font-weight:600; color:var(--text-secondary); }
+  .mood-chip.active{ border-color:var(--accent); color:#fff; background:var(--accent); }
+  .mood-result{ margin-top:18px; }
+  .mood-empty{ color:var(--text-secondary); font-size:13.5px; padding:10px 0; }
+  .gem-sub{ font-size:13px; font-weight:500; color:var(--text-secondary); }
+
+  /* ---------- Watch Party ---------- */
+  .btn-ghost{ background:transparent; border:1.5px solid rgba(255,255,255,0.35); color:#fff; }
+  .btn-ghost:hover{ border-color:#fff; }
+  .modal-backdrop{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.65); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal-backdrop.show{ display:flex; }
+  .wp-modal{ background:#161616; border:1px solid var(--border); border-radius:14px; max-width:380px; width:100%; padding:28px 26px; text-align:center; }
+  .wp-modal h3{ font-size:19px; margin:0 0 8px 0; }
+  .wp-modal p{ font-size:13px; color:var(--text-secondary); margin:0 0 18px 0; line-height:1.5; }
+  .wp-code{ font-size:24px; font-weight:800; letter-spacing:2px; background:#0d0d0d; border:1px dashed var(--border); border-radius:8px; padding:14px; margin-bottom:16px; color:var(--accent); }
+  .wp-row{ display:flex; gap:10px; }
+  .wp-row .btn{ flex:1; font-size:13.5px; padding:11px 0; }
+  .modal-close-x{ position:absolute; top:14px; right:16px; background:none; border:none; color:var(--text-secondary); font-size:20px; }
+
+  /* ---------- Search ---------- */
+  .search-wrap{ margin-top:28px; }
+  .searchbox{
+    display:flex; align-items:center; gap:12px; border:1.5px solid var(--border); background:var(--surface);
+    border-radius:10px; padding:14px 18px; max-width:600px; margin:0 auto;
+  }
+  .searchbox input{
+    background:none; border:none; outline:none; color:var(--text); font-size:15px; width:100%;
+  }
+  .searchbox input::placeholder{ color:var(--text-secondary); }
+  .chiprow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:20px 0 32px 0; }
+  .chip{
+    padding:9px 18px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface);
+    font-size:13px; font-weight:600; color:var(--text-secondary);
+  }
+  .chip.active{ border-color:var(--accent); color:var(--text); background:rgba(229,9,20,0.12); }
+  .results-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:18px;
+  }
+  @media (min-width:640px){ .results-grid{ grid-template-columns:repeat(4,1fr); } }
+  @media (min-width:1024px){ .results-grid{ grid-template-columns:repeat(6,1fr); } }
+  .results-grid .card{ width:100%; }
+  .results-grid .poster{ width:100%; height:0; padding-bottom:150%; }
+  .results-grid .poster > span.title-on-poster{ position:absolute; left:10px; right:10px; bottom:10px; }
+  .no-results{ text-align:center; color:var(--text-secondary); padding:60px 0; font-size:14px; }
+
+  /* ---------- Detail page ---------- */
+  .detail-banner{
+    position:relative; height:40vh; min-height:260px; border-radius:var(--radius-hero); overflow:hidden;
+    margin-top:24px; display:flex; align-items:flex-start;
+  }
+  .backbtn{
+    position:relative; z-index:2; margin:18px; width:38px; height:38px; border-radius:50%;
+    background:rgba(10,10,10,0.6); border:1px solid var(--border); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .detail-body{ padding-top:28px; max-width:820px; }
+  .detail-body h1{ font-size:30px; font-weight:800; margin:0 0 10px 0; }
+  .meta-row{ display:flex; gap:14px; align-items:center; color:var(--text-secondary); font-size:13.5px; font-weight:600; margin-bottom:20px; flex-wrap:wrap; }
+  .meta-row .dot{ width:3px; height:3px; border-radius:50%; background:var(--text-secondary); }
+  .synopsis{ color:#D4D4D4; font-size:14.5px; line-height:1.7; margin:22px 0 36px 0; max-width:720px; }
+  .recap-box{ margin-top:22px; padding:14px 18px; border-left:3px solid var(--accent); background:var(--surface); border-radius:0 8px 8px 0; max-width:720px; }
+  .recap-label{ font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent); margin-bottom:6px; }
+  .recap-text{ font-size:13.5px; color:#bbb; line-height:1.55; }
+
+  .section-title{ font-size:18px; font-weight:700; margin:0 0 16px 0; }
+  .cast-row{ display:flex; gap:22px; overflow-x:auto; padding-bottom:6px; margin-bottom:40px; }
+  .cast-item{ flex:0 0 auto; text-align:center; width:76px; }
+  .cast-avatar{ width:76px; height:76px; border-radius:50%; margin-bottom:8px; object-fit:cover; border:1px solid var(--border); }
+  .cast-item .name{ font-size:12px; color:var(--text-secondary); }
+
+  .episode-list{ border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:40px; }
+  .ep-row{ display:flex; align-items:center; gap:16px; padding:14px 16px; border-bottom:1px solid var(--border); }
+  .ep-row:last-child{ border-bottom:none; }
+  .ep-thumb{ width:96px; height:56px; border-radius:6px; flex-shrink:0; object-fit:cover; border:1px solid var(--border); }
+  .ep-main{ flex:1; min-width:0; }
+  .ep-title{ font-size:14px; font-weight:700; margin-bottom:3px; }
+  .ep-desc{ font-size:12.5px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ep-duration{ font-size:12.5px; color:var(--text-secondary); flex-shrink:0; }
+  .ep-play{ width:34px; height:34px; border-radius:50%; background:var(--accent); color:#fff; border:none; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+
+  /* ---------- Player ---------- */
+  .player-wrap{ margin-top:24px; }
+  .video-area{
+    position:relative; width:100%; aspect-ratio:16/9; border-radius:var(--radius-hero); overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .video-center-play{
+    width:76px; height:76px; border-radius:50%; background:rgba(255,255,255,0.92); color:#111;
+    display:flex; align-items:center; justify-content:center; border:none;
+    position:relative; z-index:2;
+  }
+  .video-overlay-top{ position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; padding:18px; z-index:2; }
+  .video-overlay-top .icon-btn{ background:rgba(0,0,0,0.4); width:36px; height:36px; border-radius:50%; }
+  .overlay-icons{ display:flex; gap:10px; }
+  .scrub-wrap{ margin-top:16px; }
+  .scrub-times{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-secondary); margin-bottom:8px; }
+  .scrub-bar{ height:4px; background:#2e2e2e; border-radius:3px; position:relative; }
+  .scrub-fill{ position:absolute; left:0; top:0; height:100%; background:var(--accent); border-radius:3px; width:34%; }
+  .scrub-dot{ position:absolute; top:50%; left:34%; width:12px; height:12px; background:var(--accent); border-radius:50%; transform:translate(-50%,-50%); }
+  .controls-row{ display:flex; justify-content:center; align-items:center; gap:32px; margin:22px 0 8px 0; }
+  .ctrl-btn{ width:44px; height:44px; border-radius:50%; border:1.5px solid var(--border); background:var(--surface); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+  .ctrl-btn.big{ width:58px; height:58px; background:var(--accent); border-color:var(--accent); font-size:18px; }
+  .player-title{ margin-top:26px; font-size:18px; font-weight:700; }
+  .player-title .sub{ display:block; font-size:13px; color:var(--text-secondary); font-weight:500; margin-top:4px; }
+
+  footer{ text-align:center; padding:40px 24px 90px 24px; color:var(--text-secondary); font-size:12.5px; }
+  @media (min-width:769px){ footer{ padding-bottom:40px; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="logo" onclick="showView('home')">StreamHub</button>
+  <nav class="mainnav">
+    <button data-view="home" class="active" onclick="showView('home')">Home</button>
+    <button data-view="search" onclick="showView('search')">Search</button>
+    <button data-view="detail" onclick="openDetail('nocturne')">Movies</button>
+    <button data-view="detail" onclick="openDetail('driftline')">TV Shows</button>
+  </nav>
+  <div class="header-icons">
+    <div class="spoiler-toggle" title="Spoiler-Safe Mode blurs new episodes until you choose to reveal them">
+      <span class="lbl">Spoiler-Safe</span>
+      <button class="sw on" id="spoilerSwitch" onclick="toggleSpoilerSafe()" aria-label="Toggle Spoiler-Safe Mode"><div class="dot"></div></button>
+    </div>
+    <button class="icon-btn" onclick="showView('search')" aria-label="Search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="avatar"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section id="home" class="view active">
+    <div class="hero" id="heroBanner">
+      <div class="hero-bg" id="heroBg"></div>
+      <div class="hero-scrim"></div>
+      <div class="hero-content">
+        <h1 id="heroTitle"></h1>
+        <p id="heroDesc"></p>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="openPlayer(heroId)">▶ Play</button>
+          <button class="btn btn-outline" onclick="openDetail(heroId)">More Info</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-section">
+      <h2 class="row-title">Continue Watching</h2>
+      <div class="card-row" id="row-continue"></div>
+    </div>
+    <div class="row-section">
+      <h2 class="row-title">Trending Now</h2>
+      <div class="card-row" id="row-trending"></div>
+    </div>
+    <div class="row-section">
+      <h2 class="row-title">New Releases</h2>
+      <div class="card-row" id="row-new"></div>
+    </div>
+
+    <div class="mood-section">
+      <h2 class="row-title">What's your mood tonight?</h2>
+      <div class="mood-row" id="moodRow"></div>
+      <div class="mood-result" id="moodResult"></div>
+    </div>
+
+    <div class="mood-section">
+      <h2 class="row-title">How much time do you have?</h2>
+      <div class="mood-row" id="timeRow"></div>
+      <div class="mood-result" id="timeResult"></div>
+    </div>
+
+    <div class="row-section">
+      <h2 class="row-title">Hidden Gems <span class="gem-sub">— highly rated, rarely seen</span></h2>
+      <div class="card-row" id="row-gems"></div>
+    </div>
+  </section>
+
+  <!-- SEARCH -->
+  <section id="search" class="view">
+    <div class="search-wrap">
+      <div class="searchbox">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#A3A3A3" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="#A3A3A3" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="searchInput" type="text" placeholder="Search movies, shows..." oninput="renderSearch()">
+      </div>
+    </div>
+    <div class="chiprow" id="chipRow"></div>
+    <div class="results-grid" id="searchResults"></div>
+  </section>
+
+  <!-- DETAIL -->
+  <section id="detail" class="view">
+    <div class="detail-banner">
+      <button class="backbtn" onclick="showView('home')">←</button>
+      <div class="hero-bg" id="detailBg" style="position:absolute; top:0; left:0; right:0; bottom:0; z-index:0;"></div>
+      <div class="hero-scrim" style="z-index:1;"></div>
+    </div>
+    <div class="detail-body">
+      <h1 id="detailTitle"></h1>
+      <div class="meta-row" id="detailMeta"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="openPlayer(currentId)">▶ Play</button>
+        <button class="btn btn-outline" id="addListBtn" onclick="toggleAddList(this)">+ Add to List</button>
+        <button class="btn btn-ghost" onclick="openWatchParty()">👥 Watch Party</button>
+      </div>
+      <div id="recapBox" class="recap-box" style="display:none;">
+        <div class="recap-label">📼 Catch-up</div>
+        <div class="recap-text" id="recapText"></div>
+      </div>
+      <p class="synopsis" id="detailSynopsis"></p>
+
+      <h3 class="section-title">Cast &amp; Crew</h3>
+      <div class="cast-row" id="castRow"></div>
+
+      <div id="episodesBlock">
+        <h3 class="section-title">Episodes</h3>
+        <div class="episode-list" id="episodeList"></div>
+      </div>
+
+      <h3 class="section-title">More Like This</h3>
+      <div class="card-row" id="moreLikeThis"></div>
+    </div>
+  </section>
+
+  <!-- PLAYER -->
+  <section id="player" class="view">
+    <div class="player-wrap">
+      <div class="video-area" id="videoArea">
+        <div class="video-overlay-top">
+          <button class="icon-btn" onclick="showView('detail')" aria-label="Back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="overlay-icons">
+            <button class="icon-btn" aria-label="Subtitles">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-width="2"/><line x1="7" y1="14" x2="11" y2="14" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="13" y1="14" x2="17" y2="14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button class="icon-btn" aria-label="Audio">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H3v6h3l5 4V5z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="icon-btn" aria-label="Cast">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 8a9 9 0 019 9M3 3a15 15 0 0115 15M3 13a5 5 0 015 5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="4.5" cy="18.5" r="1.5" fill="#fff"/></svg>
+            </button>
+            <button class="icon-btn" aria-label="Watch Party" onclick="openWatchParty()" title="Start a Watch Party">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="#fff" stroke-width="2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.4" stroke="#fff" stroke-width="1.6"/><path d="M15.5 14.2c2.6.3 4.5 2.4 4.5 5.1" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="video-center-play" aria-label="Play">▶</button>
+      </div>
+
+      <div class="scrub-wrap">
+        <div class="scrub-times"><span>14:22</span><span id="playerDuration">38:05</span></div>
+        <div class="scrub-bar"><div class="scrub-fill"></div><div class="scrub-dot"></div></div>
+      </div>
+
+      <div class="controls-row">
+        <button class="ctrl-btn">◁10</button>
+        <button class="ctrl-btn big">▶</button>
+        <button class="ctrl-btn">10▷</button>
+      </div>
+
+      <div class="player-title">
+        <span id="playerTitle">Episode Title</span>
+        <span class="sub" id="playerSub">S1:E1</span>
+      </div>
+
+      <h3 class="section-title" style="margin-top:32px;">Up Next</h3>
+      <div class="card-row" id="upNextRow"></div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <button data-view="home" class="active" onclick="showView('home')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Home
+  </button>
+  <button data-view="search" onclick="showView('search')">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Search
+  </button>
+  <button data-view="home" onclick="showView('home')">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v13M5 10l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 21h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Downloads
+  </button>
+  <button data-view="home" onclick="showView('home')">
+    <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M9 4v16" stroke="currentColor" stroke-width="2"/></svg>
+    My List
+  </button>
+  <button data-view="home" onclick="showView('home')">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="2"/><path d="M5 20c1.5-4 4.2-6 7-6s5.5 2 7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Profile
+  </button>
+</nav>
+
+<footer>StreamHub — design concept. All titles and imagery are placeholders.</footer>
+
+<div class="modal-backdrop" id="wpBackdrop" onclick="if(event.target===this) closeWatchParty()">
+  <div class="wp-modal" id="wpModalBody"></div>
+</div>
+
+<script>
+/* ---------------- Data ---------------- */
+/* ---------------- Generated artwork ----------------
+   Every poster, banner, episode still and cast portrait is an SVG scene drawn
+   here at load time, so the page stays a single self-contained file. */
+const POSTER_W = 450, POSTER_H = 675, BANNER_W = 1280, BANNER_H = 560;
+
+function makeRng(seed){
+  let x = (seed >>> 0) || 1;
+  return ()=>{ x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+}
+function hashStr(str){
+  let h = 2166136261;
+  for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function n1(v){ return Math.round(v*10)/10; }
+function pick(rand, arr){ return arr[Math.floor(rand()*arr.length)]; }
+function svgURI(markup){ return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(markup); }
+function stops(list){
+  return list.map(([o,c,a])=>`<stop offset="${o}" stop-color="${c}"${a===undefined?"":` stop-opacity="${a}"`}/>`).join("");
+}
+function linGrad(id, list, x2=0, y2=1){ return `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">${stops(list)}</linearGradient>`; }
+function radGrad(id, list, cx=.5, cy=.5, r=.5){ return `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops(list)}</radialGradient>`; }
+function pts(arr){ return arr.map(p=>`${n1(p[0])},${n1(p[1])}`).join(" "); }
+function focusX(W,H){ return W > H*1.3 ? W*0.66 : W*0.5; }
+
+function svgDoc(W, H, defs, body){
+  const S = Math.min(W,H);
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice">` +
+    `<defs>${defs}` +
+    `<radialGradient id="vig" cx=".5" cy=".45" r=".75"><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".72"/></radialGradient>` +
+    `<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .1 0"/></filter>` +
+    `<filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${n1(S*0.018)}"/></filter>` +
+    `<filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="${n1(S*0.04)}"/></filter>` +
+    `<filter id="haze" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${n1(S*0.08)}"/></filter>` +
+    `</defs>${body}` +
+    `<rect width="${W}" height="${H}" fill="url(#vig)"/><rect width="${W}" height="${H}" filter="url(#grain)"/></svg>`;
+}
+
+function rainSVG(W,H,rand,count,opacity,slant=0.25){
+  const S = Math.min(W,H);
+  let out = `<g stroke="#fff" stroke-linecap="round" stroke-width="${n1(Math.max(0.6,S*0.0025))}">`;
+  for(let i=0;i<count;i++){
+    const x = rand()*W*1.15, y = rand()*H, len = S*(0.03+rand()*0.05);
+    out += `<line x1="${n1(x)}" y1="${n1(y)}" x2="${n1(x-len*slant)}" y2="${n1(y+len)}" stroke-opacity="${(opacity*(0.35+rand()*0.65)).toFixed(2)}"/>`;
+  }
+  return out + `</g>`;
+}
+function starsSVG(W,H,rand,count,maxY){
+  const S = Math.min(W,H);
+  let out = "";
+  for(let i=0;i<count;i++){
+    out += `<circle cx="${n1(rand()*W)}" cy="${n1(rand()*maxY)}" r="${n1(S*(0.0015+rand()*0.003))}" fill="#fff" opacity="${(0.25+rand()*0.65).toFixed(2)}"/>`;
+  }
+  return out;
+}
+function skylineSVG(W, baseY, minH, maxH, rand, S, fill, winColor, litChance){
+  let out = "", x = -rand()*S*0.05;
+  while(x < W){
+    const bw = S*(0.06+rand()*0.1), bh = minH + rand()*(maxH-minH), top = baseY - bh;
+    out += `<rect x="${n1(x)}" y="${n1(top)}" width="${n1(bw+1)}" height="${n1(bh+2)}" fill="${fill}"/>`;
+    if(rand() < 0.3) out += `<rect x="${n1(x+bw*0.45)}" y="${n1(top-S*0.04)}" width="${n1(S*0.005)}" height="${n1(S*0.04)}" fill="${fill}"/>`;
+    const ws = S*0.011, gap = S*0.024;
+    for(let wy = top+gap; wy < baseY-gap; wy += gap){
+      for(let wx = x+gap*0.6; wx < x+bw-ws-gap*0.3; wx += gap){
+        if(rand() < litChance) out += `<rect x="${n1(wx)}" y="${n1(wy)}" width="${n1(ws)}" height="${n1(ws*1.35)}" fill="${winColor}" opacity="${(0.45+rand()*0.55).toFixed(2)}"/>`;
+      }
+    }
+    x += bw + S*rand()*0.012;
+  }
+  return out;
+}
+function wavePoints(W, y, amp, len, phase){
+  const step = len/12, out = [];
+  for(let x=-step; x<=W+step; x+=step){
+    out.push([x, y + Math.sin(x/len*Math.PI*2+phase)*amp + Math.sin(x/len*Math.PI*5.3+phase*2)*amp*0.3]);
+  }
+  return out;
+}
+function waveFill(W,H,y,amp,len,phase,fill){
+  const p = wavePoints(W,y,amp,len,phase);
+  return `<path d="M${n1(p[0][0])} ${H} L${p.map(q=>`${n1(q[0])} ${n1(q[1])}`).join(" L")} L${n1(p[p.length-1][0])} ${H} Z" fill="${fill}"/>` +
+         `<polyline points="${pts(p)}" fill="none" stroke="#9fdbe6" stroke-opacity=".22" stroke-width="${n1(amp*0.12+0.6)}"/>`;
+}
+function dustSVG(rand, count, x0, x1, y0, y1, S, color, maxOp){
+  let out = "";
+  for(let i=0;i<count;i++){
+    out += `<circle cx="${n1(x0+rand()*(x1-x0))}" cy="${n1(y0+rand()*(y1-y0))}" r="${n1(S*(0.002+rand()*0.004))}" fill="${color}" opacity="${(maxOp*(0.2+rand()*0.8)).toFixed(2)}"/>`;
+  }
+  return out;
+}
+
+/* ---- Scenes: each draws a full composition for any W×H ---- */
+const SCENES = {
+  nocturne(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H), gy = H*0.8;
+    const mx = W > H*1.3 ? W*0.86 : W*0.74, my = H*0.17, mr = S*0.075;
+    const k = S*0.0031;
+    const defs =
+      linGrad("sky", [[0,"#1c0610"],[.55,"#5c1530"],[1,"#2a0a14"]]) +
+      linGrad("floor", [[0,"#1a070d"],[1,"#040102"]]) +
+      linGrad("beam", [[0,"#ffe6b0",.5],[1,"#ffe6b0",0]]) +
+      radGrad("pool", [[0,"#ffd79a",.55],[1,"#ffd79a",0]]) +
+      `<mask id="moonM"><rect width="${W}" height="${H}" fill="#000"/><circle cx="${n1(mx)}" cy="${n1(my)}" r="${n1(mr)}" fill="#fff"/><circle cx="${n1(mx+mr*0.42)}" cy="${n1(my-mr*0.2)}" r="${n1(mr*0.9)}" fill="#000"/></mask>`;
+    const neonX = W > H*1.3 ? W*0.4 : W*0.2, neonY = H*0.52, fs = S*0.075;
+    const neon = `<text x="${n1(neonX)}" y="${n1(neonY)}" font-family="Georgia,serif" font-style="italic" font-weight="700" font-size="${n1(fs)}" text-anchor="middle"`;
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      `<circle cx="${n1(mx)}" cy="${n1(my)}" r="${n1(mr*2.2)}" fill="#f3d9b0" opacity=".22" filter="url(#glow)"/>` +
+      `<rect width="${W}" height="${H}" fill="#f3dfc0" mask="url(#moonM)"/>` +
+      skylineSVG(W, H*0.74, H*0.2, H*0.44, rand, S, "#22091a", "#e8a75a", 0.14) +
+      `<rect y="${n1(H*0.55)}" width="${W}" height="${n1(H*0.2)}" fill="#ff8a7a" opacity=".1" filter="url(#haze)"/>` +
+      skylineSVG(W, H*0.76, H*0.08, H*0.26, rand, S, "#0f0409", "#ffb866", 0.1) +
+      `${neon} fill="none" stroke="#ff4f7a" stroke-width="${n1(S*0.01)}" filter="url(#soft)" opacity=".9">Blue Note</text>` +
+      `${neon} fill="#ffd1dc" stroke="#ff4f7a" stroke-width="${n1(S*0.002)}">Blue Note</text>` +
+      `<rect y="${n1(gy)}" width="${W}" height="${n1(H-gy)}" fill="url(#floor)"/>` +
+      `<polygon points="${pts([[fx-S*0.03,-10],[fx+S*0.03,-10],[fx+S*0.42,gy+S*0.05],[fx-S*0.42,gy+S*0.05]])}" fill="url(#beam)" filter="url(#soft)"/>` +
+      `<ellipse cx="${n1(fx)}" cy="${n1(gy+S*0.02)}" rx="${n1(S*0.48)}" ry="${n1(S*0.07)}" fill="url(#pool)"/>` +
+      `<g transform="translate(${n1(fx-k*80)},${n1(gy-k*110)}) scale(${k.toFixed(4)})" fill="#070205">` +
+        `<path d="M22 46 L176 6 L182 13 L32 52 Z"/>` +
+        `<path d="M128 24 L132 50" stroke="#070205" stroke-width="3"/>` +
+        `<path d="M12 50 H150 C178 50 192 55 192 64 C192 73 178 78 150 78 H12 Z"/>` +
+        `<rect x="0" y="52" width="16" height="10"/>` +
+        `<rect x="16" y="78" width="7" height="32"/><rect x="160" y="78" width="7" height="32"/><rect x="100" y="78" width="6" height="30"/>` +
+        `<rect x="74" y="78" width="3" height="26"/><rect x="67" y="102" width="17" height="3"/>` +
+        `<rect x="-36" y="84" width="30" height="6"/><rect x="-34" y="90" width="3" height="20"/><rect x="-10" y="90" width="3" height="20"/>` +
+        `<path d="M22 46 L176 6 M12 50 H150 C178 50 192 55 192 64" fill="none" stroke="#ffcf8a" stroke-opacity=".7" stroke-width="1.4"/>` +
+        `<path d="M1 53 H15" stroke="#f5ead8" stroke-width="1.6" stroke-opacity=".85"/>` +
+      `</g>` +
+      rainSVG(W,H,rand,90,0.16);
+    return {defs, body};
+  },
+
+  driftline(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H), k = S*0.0042, wl = H*0.66;
+    const defs = linGrad("sky", [[0,"#03121a"],[.6,"#0d3443"],[1,"#1c5464"]]);
+    let clouds = "";
+    for(let i=0;i<10;i++){
+      clouds += `<ellipse cx="${n1(rand()*W)}" cy="${n1(H*(0.04+rand()*0.3))}" rx="${n1(S*(0.25+rand()*0.3))}" ry="${n1(S*(0.07+rand()*0.08))}" fill="${pick(rand,["#0a2430","#123545","#06161d","#174456"])}" opacity=".9" filter="url(#soft)"/>`;
+    }
+    const lx = W > H*1.3 ? W*0.3 : W*0.22;
+    const bolt = [[lx,0]];
+    for(let i=1;i<=8;i++) bolt.push([lx + (rand()-0.5)*S*0.12 + i*S*0.008, H*0.56*i/8]);
+    const ship =
+      `<g transform="translate(${n1(fx-k*82)},${n1(wl-k*60)}) rotate(-5 ${n1(k*82)} ${n1(k*60)}) scale(${k.toFixed(4)})" fill="#02090c">` +
+        `<path d="M0 46 L148 46 L166 36 L154 72 L12 72 Z"/>` +
+        `<rect x="88" y="26" width="44" height="21"/><rect x="96" y="13" width="28" height="14"/>` +
+        `<rect x="110" y="-8" width="2.2" height="22"/><rect x="103" y="-3" width="16" height="1.6"/>` +
+        `<path d="M8 46 L21 12 L26 12 L15 46 Z M30 46 L24 12 L28 12 L35 46 Z"/><rect x="19" y="10" width="11" height="3"/>` +
+        `<path d="M24 13 L4 34" stroke="#02090c" stroke-width="1"/>` +
+        `<rect x="40" y="35" width="20" height="11"/><rect x="62" y="38" width="18" height="8"/>` +
+        `<rect x="99" y="17" width="22" height="3.2" fill="#ffd27a"/>` +
+        [30,45,60,75,90,105,120,135].map(x=>`<circle cx="${x}" cy="54" r="1.5" fill="#ffd27a" opacity=".9"/>`).join("") +
+        `<circle cx="111" cy="-9" r="6" fill="#ff3b3b" opacity=".35"/><circle cx="111" cy="-9" r="1.8" fill="#ff5a5a"/>` +
+        `<path d="M0 46 L148 46 L166 36 M88 26 H132 M96 13 H124" fill="none" stroke="#6fc4d6" stroke-opacity=".45" stroke-width="0.9"/>` +
+      `</g>`;
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      `<ellipse cx="${n1(lx)}" cy="${n1(H*0.15)}" rx="${n1(S*0.35)}" ry="${n1(S*0.22)}" fill="#9fe3ff" opacity=".22" filter="url(#haze)"/>` +
+      clouds +
+      `<polyline points="${pts(bolt)}" fill="none" stroke="#bfefff" stroke-width="${n1(S*0.025)}" opacity=".45" filter="url(#soft)"/>` +
+      `<polyline points="${pts(bolt)}" fill="none" stroke="#ffffff" stroke-width="${n1(S*0.005)}" stroke-linejoin="round"/>` +
+      waveFill(W,H,H*0.58,S*0.01,S*0.3,rand()*6,"#0a2b37") +
+      waveFill(W,H,H*0.62,S*0.016,S*0.36,rand()*6,"#082430") +
+      ship +
+      waveFill(W,H,H*0.69,S*0.026,S*0.45,rand()*6,"#061c25") +
+      waveFill(W,H,H*0.78,S*0.035,S*0.6,rand()*6,"#04131a") +
+      waveFill(W,H,H*0.89,S*0.045,S*0.75,rand()*6,"#020a0e") +
+      rainSVG(W,H,rand,150,0.2,0.4);
+    return {defs, body};
+  },
+
+  redcliff(W,H,rand){
+    const S = Math.min(W,H), cx = focusX(W,H);
+    const defs =
+      linGrad("sky", [[0,"#1a0804"],[.45,"#6e2a0c"],[.8,"#e0782e"],[1,"#f4a25a"]]) +
+      linGrad("wall", [[0,"#4a1a08"],[1,"#1a0703"]]) +
+      linGrad("beam", [[0,"#fff4d8",.55],[1,"#fff4d8",0]], 1, 1);
+    let mesa = `M0 ${n1(H*0.47)}`;
+    for(let x=0; x<=W; x+=S*0.08) mesa += ` L${n1(x)} ${n1(H*(0.4+(rand()<0.25?0.05:0)+rand()*0.015))}`;
+    mesa += ` L${W} ${n1(H*0.6)} L0 ${n1(H*0.6)} Z`;
+    let bands = "";
+    const levels = 6, bandH = H*0.065, top0 = H*0.5;
+    const faces = ["#7a2e12","#6a270e","#5a200b","#4a1a08","#3b1406","#2c0e04"];
+    for(let i=0;i<levels;i++){
+      const y = top0 + i*bandH, hw = Math.max(W*0.5, S*0.62)*(1 - i*0.13);
+      bands += `<polygon points="${pts([[cx-hw,y],[cx+hw,y],[cx+hw*0.87,y+bandH],[cx-hw*0.87,y+bandH]])}" fill="${faces[i]}"/>`;
+      bands += `<line x1="${n1(cx-hw)}" y1="${n1(y)}" x2="${n1(cx+hw)}" y2="${n1(y)}" stroke="#f08a46" stroke-opacity="${(0.55-i*0.07).toFixed(2)}" stroke-width="${n1(S*0.004)}"/>`;
+      for(let j=0;j<4;j++){
+        const sx = cx-hw+rand()*hw*2;
+        bands += `<line x1="${n1(sx)}" y1="${n1(y+bandH*0.2)}" x2="${n1(sx+(rand()-0.5)*S*0.02)}" y2="${n1(y+bandH*0.9)}" stroke="#000" stroke-opacity=".25" stroke-width="${n1(S*0.003)}"/>`;
+      }
+    }
+    const pitY = top0 + levels*bandH;
+    const figX = cx - Math.min(W*0.32, S*0.36), figY = top0 - S*0.002, fk = S*0.0011;
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      `<circle cx="${n1(cx+S*0.1)}" cy="${n1(H*0.4)}" r="${n1(S*0.3)}" fill="#ff9a4a" opacity=".55" filter="url(#haze)"/>` +
+      `<circle cx="${n1(cx+S*0.1)}" cy="${n1(H*0.4)}" r="${n1(S*0.12)}" fill="#ffd9a0"/>` +
+      `<path d="${mesa}" fill="#8a3412" opacity=".85"/>` +
+      `<rect y="${n1(top0)}" width="${W}" height="${n1(H-top0)}" fill="url(#wall)"/>` +
+      bands +
+      `<rect x="${n1(cx-W)}" y="${n1(pitY)}" width="${n1(W*2)}" height="${n1(H-pitY)}" fill="#160603"/>` +
+      `<ellipse cx="${n1(cx)}" cy="${n1(pitY+S*0.03)}" rx="${n1(S*0.14)}" ry="${n1(S*0.03)}" fill="#ffe2a8" opacity=".55" filter="url(#glow)"/>` +
+      `<path d="M${n1(cx-S*0.07)} ${n1(pitY+S*0.03)} l${n1(S*0.03)} ${n1(-S*0.012)} l${n1(S*0.025)} ${n1(S*0.01)} l${n1(S*0.03)} ${n1(-S*0.014)} l${n1(S*0.03)} ${n1(S*0.012)}" fill="none" stroke="#fff1cf" stroke-width="${n1(S*0.004)}"/>` +
+      `<polygon points="${pts([[figX+fk*14,figY-fk*44],[cx-S*0.18,pitY+S*0.05],[cx+S*0.06,pitY+S*0.06]])}" fill="url(#beam)" filter="url(#soft)"/>` +
+      `<g transform="translate(${n1(figX)},${n1(figY)}) scale(${fk.toFixed(4)})" fill="#120401">` +
+        `<ellipse cx="0" cy="-74" rx="13" ry="3"/><path d="M-7 -74 L-6 -84 Q0 -86 6 -84 L7 -74 Z"/>` +
+        `<circle cx="0" cy="-66" r="6"/><path d="M-9 -60 L9 -60 L11 -30 L-11 -30 Z"/>` +
+        `<path d="M8 -56 L18 -46 L15 -43 L6 -50 Z"/>` +
+        `<rect x="-9" y="-31" width="7" height="31"/><rect x="2" y="-31" width="7" height="31"/>` +
+      `</g>` +
+      dustSVG(rand, 45, 0, W, H*0.3, H, S, "#ffcf9a", 0.35) +
+      `<path d="M0 ${H} L0 ${n1(H*0.86)} Q${n1(W*0.12)} ${n1(H*0.82)} ${n1(W*0.22)} ${n1(H*0.9)} L${n1(W*0.3)} ${H} Z" fill="#0c0301"/>` +
+      `<path d="M${W} ${H} L${W} ${n1(H*0.84)} Q${n1(W*0.86)} ${n1(H*0.83)} ${n1(W*0.8)} ${n1(H*0.92)} L${n1(W*0.72)} ${H} Z" fill="#0c0301"/>`;
+    return {defs, body};
+  },
+
+  paperlanterns(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H);
+    const defs =
+      linGrad("sky", [[0,"#12040b"],[.6,"#3d0c22"],[1,"#1a050e"]]) +
+      radGrad("lan", [[0,"#fff0c0"],[.45,"#ff8a3c"],[1,"#b3202e"]], .45, .4, .62) +
+      linGrad("ground", [[0,"#1a050c"],[1,"#060104"]]);
+    let bokeh = "";
+    for(let i=0;i<40;i++){
+      bokeh += `<circle cx="${n1(rand()*W)}" cy="${n1(rand()*H*0.8)}" r="${n1(S*(0.01+rand()*0.045))}" fill="${pick(rand,["#ff9a5a","#ffcf7a","#ff5a6a"])}" opacity="${(0.06+rand()*0.18).toFixed(2)}" filter="url(#soft)"/>`;
+    }
+    let sky = "";
+    for(let i=0;i<12;i++){
+      const x = rand()*W, y = H*(0.04+rand()*0.22), s = S*(0.012+rand()*0.02);
+      sky += `<circle cx="${n1(x)}" cy="${n1(y)}" r="${n1(s*2.2)}" fill="#ff9a4a" opacity=".3" filter="url(#soft)"/>` +
+             `<path d="M${n1(x-s*0.7)} ${n1(y-s)} L${n1(x+s*0.7)} ${n1(y-s)} L${n1(x+s*0.5)} ${n1(y+s)} L${n1(x-s*0.5)} ${n1(y+s)} Z" fill="#ffc070"/>`;
+    }
+    const lantern = (x, y, size)=>{
+      const cy = y + size*0.95;
+      return `<line x1="${n1(x)}" y1="${n1(y)}" x2="${n1(x)}" y2="${n1(cy-size*0.6)}" stroke="#1a0508" stroke-width="${n1(size*0.04)}"/>` +
+        `<circle cx="${n1(x)}" cy="${n1(cy)}" r="${n1(size*1.25)}" fill="#ff7a32" opacity=".38" filter="url(#glow)"/>` +
+        `<ellipse cx="${n1(x)}" cy="${n1(cy)}" rx="${n1(size*0.52)}" ry="${n1(size*0.62)}" fill="url(#lan)"/>` +
+        `<ellipse cx="${n1(x)}" cy="${n1(cy)}" rx="${n1(size*0.24)}" ry="${n1(size*0.61)}" fill="none" stroke="#8a1a1a" stroke-opacity=".35" stroke-width="${n1(size*0.03)}"/>` +
+        `<rect x="${n1(x-size*0.22)}" y="${n1(cy-size*0.68)}" width="${n1(size*0.44)}" height="${n1(size*0.1)}" fill="#2a0a0a"/>` +
+        `<rect x="${n1(x-size*0.22)}" y="${n1(cy+size*0.58)}" width="${n1(size*0.44)}" height="${n1(size*0.1)}" fill="#2a0a0a"/>` +
+        `<line x1="${n1(x)}" y1="${n1(cy+size*0.68)}" x2="${n1(x)}" y2="${n1(cy+size*1.05)}" stroke="#d4302e" stroke-width="${n1(size*0.06)}"/>`;
+    };
+    let strings = "";
+    [[0.16,0.07,0.09],[0.3,0.09,0.12],[0.46,0.1,0.15]].forEach(([yf, sagf, sizef])=>{
+      const y = H*yf, sag = S*sagf, size = S*sizef;
+      strings += `<path d="M-10 ${n1(y)} Q${n1(W/2)} ${n1(y+sag*2)} ${W+10} ${n1(y)}" fill="none" stroke="#2a0a10" stroke-width="${n1(S*0.003)}"/>`;
+      const count = Math.max(3, Math.round(W/(size*2.4)));
+      const off = rand()*0.5;
+      for(let i=0;i<count;i++){
+        const t = (i+0.5+off*0.5)/count;
+        strings += lantern(t*W, y + 2*t*(1-t)*sag*2, size*(0.85+rand()*0.3));
+      }
+    });
+    const bw = Math.min(W*0.9, S*0.95), x0 = fx-bw/2, x1 = fx+bw/2, ry = H*0.72, e = S*0.07;
+    const shop =
+      `<rect x="${n1(x0)}" y="${n1(ry)}" width="${n1(bw)}" height="${n1(H-ry)}" fill="#14050a"/>` +
+      `<circle cx="${n1(fx)}" cy="${n1(H*0.88)}" r="${n1(S*0.2)}" fill="#ffae5c" opacity=".35" filter="url(#glow)"/>` +
+      `<rect x="${n1(fx-bw*0.14)}" y="${n1(ry+S*0.1)}" width="${n1(bw*0.28)}" height="${n1(H-ry-S*0.1)}" fill="#ffb878" opacity=".85"/>` +
+      `<rect x="${n1(x0+bw*0.06)}" y="${n1(ry+S*0.1)}" width="${n1(bw*0.2)}" height="${n1(S*0.11)}" fill="#ff9a5a" opacity=".7"/>` +
+      `<rect x="${n1(x1-bw*0.26)}" y="${n1(ry+S*0.1)}" width="${n1(bw*0.2)}" height="${n1(S*0.11)}" fill="#ff9a5a" opacity=".7"/>` +
+      `<path d="M${n1(x0-e)} ${n1(ry-S*0.005)} Q${n1(x0)} ${n1(ry+S*0.012)} ${n1(x0+S*0.06)} ${n1(ry-S*0.035)} L${n1(x1-S*0.06)} ${n1(ry-S*0.035)} Q${n1(x1)} ${n1(ry+S*0.012)} ${n1(x1+e)} ${n1(ry-S*0.005)} L${n1(x1)} ${n1(ry+S*0.05)} L${n1(x0)} ${n1(ry+S*0.05)} Z" fill="#0a0205"/>` +
+      `<rect x="${n1(fx-S*0.1)}" y="${n1(ry+S*0.055)}" width="${n1(S*0.2)}" height="${n1(S*0.035)}" fill="#a3161e"/>` +
+      lantern(x0+bw*0.04, ry+S*0.05, S*0.06) + lantern(x1-bw*0.04, ry+S*0.05, S*0.06);
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` + bokeh + sky + strings +
+      `<rect y="${n1(H*0.9)}" width="${W}" height="${n1(H*0.1)}" fill="url(#ground)"/>` + shop;
+    return {defs, body};
+  },
+
+  ironhour(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H);
+    const defs =
+      linGrad("sky", [[0,"#05070d"],[1,"#161d30"]]) +
+      linGrad("beam", [[0,"#e4ecff",.55],[1,"#e4ecff",0]]) +
+      linGrad("glove", [[0,"#e5323c"],[1,"#560610"]], 1, 1) +
+      radGrad("pool", [[0,"#c9d6ff",.4],[1,"#c9d6ff",0]]);
+    let crowd = "";
+    for(let x=-S*0.02; x<W+S*0.04; x+=S*(0.045+rand()*0.02)){
+      const y = H*0.6 + rand()*S*0.02, hr = S*(0.022+rand()*0.008);
+      crowd += `<circle cx="${n1(x)}" cy="${n1(y)}" r="${n1(hr)}" fill="#0a0e19"/><ellipse cx="${n1(x)}" cy="${n1(y+hr*2.4)}" rx="${n1(hr*1.9)}" ry="${n1(hr*1.6)}" fill="#0a0e19"/>`;
+    }
+    const lp = fx - Math.min(W*0.46, S*0.75), rp = fx + Math.min(W*0.46, S*0.75), postTop = H*0.5, postBot = H*0.8;
+    const post = (x, pad)=>`<rect x="${n1(x-S*0.013)}" y="${n1(postTop)}" width="${n1(S*0.026)}" height="${n1(postBot-postTop)}" fill="#0c0f18"/><rect x="${n1(x-S*0.02)}" y="${n1(postTop+S*0.02)}" width="${n1(S*0.04)}" height="${n1(H*0.18)}" rx="${n1(S*0.008)}" fill="${pad}"/>`;
+    let ropes = "";
+    [0.57,0.64,0.71].forEach(f=>{
+      ropes += `<path d="M${n1(lp)} ${n1(H*f)} Q${n1(fx)} ${n1(H*f+S*0.015)} ${n1(rp)} ${n1(H*f)}" fill="none" stroke="#e6e9f2" stroke-opacity=".6" stroke-width="${n1(S*0.007)}"/>`;
+    });
+    const hookY = H*0.1, gk = S*0.0036;
+    const glove = (x, y, ang)=>
+      `<line x1="${n1(x-gk*6)}" y1="${n1(y)}" x2="${n1(fx)}" y2="${n1(hookY)}" stroke="#d8dce6" stroke-opacity=".7" stroke-width="${n1(S*0.003)}"/>` +
+      `<line x1="${n1(x+gk*6)}" y1="${n1(y)}" x2="${n1(fx)}" y2="${n1(hookY)}" stroke="#d8dce6" stroke-opacity=".7" stroke-width="${n1(S*0.003)}"/>` +
+      `<g transform="translate(${n1(x)},${n1(y)}) rotate(${ang}) scale(${gk.toFixed(4)}) translate(-30,0)">` +
+        `<ellipse cx="6" cy="46" rx="8" ry="15" fill="#7a0a14"/>` +
+        `<path d="M10 16 H50 C58 30 58 44 56 56 C54 74 44 82 30 82 C16 82 6 74 4 58 C2 44 4 28 10 16 Z" fill="url(#glove)"/>` +
+        `<rect x="12" y="0" width="36" height="19" rx="4" fill="#8a0c16"/><rect x="12" y="7" width="36" height="4" fill="#f2f2f2" opacity=".9"/>` +
+        `<ellipse cx="38" cy="52" rx="7" ry="16" fill="#fff" opacity=".2"/>` +
+      `</g>`;
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      `<polygon points="${pts([[fx-S*0.07,-10],[fx+S*0.07,-10],[fx+S*0.55,H*0.92],[fx-S*0.55,H*0.92]])}" fill="url(#beam)" filter="url(#soft)"/>` +
+      crowd +
+      `<polygon points="${pts([[lp-S*0.2,H],[rp+S*0.2,H],[rp,postBot],[lp,postBot]])}" fill="#1a2132"/>` +
+      `<ellipse cx="${n1(fx)}" cy="${n1(H*0.88)}" rx="${n1(S*0.55)}" ry="${n1(S*0.1)}" fill="url(#pool)"/>` +
+      post(lp,"#b3121c") + post(rp,"#1f4fd1") + ropes +
+      dustSVG(rand, 70, fx-S*0.4, fx+S*0.4, 0, H*0.85, S, "#e8eeff", 0.5) +
+      `<circle cx="${n1(fx)}" cy="${n1(hookY)}" r="${n1(S*0.008)}" fill="#c8ccd6"/>` +
+      glove(fx-S*0.1, H*0.36, 9) + glove(fx+S*0.09, H*0.4, -7) +
+      `<path d="M${n1(lp-S*0.3)} ${n1(H*0.86)} Q${n1(fx)} ${n1(H*0.89)} ${n1(rp+S*0.3)} ${n1(H*0.86)}" fill="none" stroke="#b3121c" stroke-width="${n1(S*0.016)}"/>` +
+      `<path d="M${n1(lp-S*0.3)} ${n1(H*0.94)} Q${n1(fx)} ${n1(H*0.97)} ${n1(rp+S*0.3)} ${n1(H*0.94)}" fill="none" stroke="#7a0a12" stroke-width="${n1(S*0.018)}"/>`;
+    return {defs, body};
+  },
+
+  glasshouse(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H);
+    const base = H*0.82, gw = Math.min(W*0.86, S*0.9), x0 = fx-gw/2, x1 = fx+gw/2;
+    const wallTop = base - S*0.3, rise = S*0.2, ctrl = wallTop - 2*rise, apex = wallTop - rise;
+    const shape = `M${n1(x0)} ${n1(base)} L${n1(x0)} ${n1(wallTop)} Q${n1(fx)} ${n1(ctrl)} ${n1(x1)} ${n1(wallTop)} L${n1(x1)} ${n1(base)} Z`;
+    const mx = W > H*1.3 ? W*0.2 : W*0.8;
+    const defs =
+      linGrad("sky", [[0,"#020a08"],[.6,"#0b2a20"],[1,"#164a37"]]) +
+      radGrad("inside", [[0,"#f6f0b0",.95],[.45,"#9fe39a",.55],[1,"#1d5a3a",.35]], .5, .7, .7) +
+      `<clipPath id="gh"><path d="${shape}"/></clipPath>`;
+    let trees = "";
+    for(let x=-S*0.05; x<W+S*0.1; x+=S*(0.05+rand()*0.06)){
+      trees += `<circle cx="${n1(x)}" cy="${n1(H*0.66+rand()*S*0.04)}" r="${n1(S*(0.06+rand()*0.07))}" fill="#04120d"/>`;
+    }
+    let plants = "";
+    for(let i=0;i<9;i++){
+      const px = x0 + gw*(0.08+rand()*0.84), pr = S*(0.04+rand()*0.06);
+      plants += `<circle cx="${n1(px)}" cy="${n1(base-pr*0.6)}" r="${n1(pr)}" fill="#0b2c1c" opacity=".85"/>`;
+    }
+    for(let i=0;i<7;i++){
+      const a = -Math.PI*(0.15+i*0.7/6), len = S*(0.16+rand()*0.06), px = fx + (rand()-0.5)*S*0.08, py = base - S*0.08;
+      const ex = px + Math.cos(a)*len, ey = py + Math.sin(a)*len*0.9;
+      plants += `<path d="M${n1(px)} ${n1(py)} Q${n1((px+ex)/2)} ${n1(Math.min(py,ey)-S*0.07)} ${n1(ex)} ${n1(ey+S*0.03)}" fill="none" stroke="#0e3a22" stroke-width="${n1(S*0.018)}" stroke-linecap="round"/>`;
+    }
+    plants += `<rect x="${n1(fx-S*0.008)}" y="${n1(base-S*0.1)}" width="${n1(S*0.016)}" height="${n1(S*0.1)}" fill="#0e3a22"/>`;
+    let panes = "";
+    const cols = 10;
+    for(let i=1;i<cols;i++){ const x = x0 + gw*i/cols; panes += `<line x1="${n1(x)}" y1="${n1(apex-5)}" x2="${n1(x)}" y2="${n1(base)}"/>`; }
+    [0.5].forEach(f=>{ const y = wallTop + (base-wallTop)*f; panes += `<line x1="${n1(x0)}" y1="${n1(y)}" x2="${n1(x1)}" y2="${n1(y)}"/>`; });
+    panes += `<line x1="${n1(x0)}" y1="${n1(wallTop)}" x2="${n1(x1)}" y2="${n1(wallTop)}"/>`;
+    [0.55].forEach(f=>{ panes += `<path d="M${n1(fx-gw/2*f)} ${n1(wallTop + rise*(1-f*f)*0)} Q${n1(fx)} ${n1(ctrl+ (wallTop-ctrl)*0.45)} ${n1(fx+gw/2*f)} ${n1(wallTop)}" fill="none"/>`; });
+    let vines = "";
+    for(let i=0;i<14;i++){
+      const vx = x0 + (rand()<0.5 ? rand()*gw*0.12 : gw*(0.88+rand()*0.12)), vy = base - rand()*S*0.28;
+      vines += `<ellipse cx="${n1(vx)}" cy="${n1(vy)}" rx="${n1(S*0.012)}" ry="${n1(S*0.006)}" transform="rotate(${Math.round(rand()*180)} ${n1(vx)} ${n1(vy)})" fill="#0f3d24"/>`;
+    }
+    let flies = "";
+    for(let i=0;i<26;i++){
+      const x = rand()*W, y = H*(0.55+rand()*0.4);
+      flies += `<circle cx="${n1(x)}" cy="${n1(y)}" r="${n1(S*0.012)}" fill="#e8ff8a" opacity=".25" filter="url(#soft)"/><circle cx="${n1(x)}" cy="${n1(y)}" r="${n1(S*0.0035)}" fill="#f4ffb8"/>`;
+    }
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      starsSVG(W,H,rand,50,H*0.45) +
+      `<circle cx="${n1(mx)}" cy="${n1(H*0.13)}" r="${n1(S*0.12)}" fill="#dff5e6" opacity=".18" filter="url(#glow)"/><circle cx="${n1(mx)}" cy="${n1(H*0.13)}" r="${n1(S*0.045)}" fill="#eaf7ee"/>` +
+      trees +
+      `<ellipse cx="${n1(fx)}" cy="${n1(base)}" rx="${n1(gw*0.75)}" ry="${n1(S*0.09)}" fill="#c9f0a0" opacity=".28" filter="url(#glow)"/>` +
+      `<path d="${shape}" fill="url(#inside)"/>` +
+      `<g clip-path="url(#gh)">${plants}</g>` +
+      `<g stroke="#e2f5e0" stroke-opacity=".55" stroke-width="${n1(S*0.004)}">${panes}</g>` +
+      `<path d="${shape}" fill="none" stroke="#e2f5e0" stroke-opacity=".8" stroke-width="${n1(S*0.008)}"/>` +
+      `<rect x="${n1(fx-S*0.008)}" y="${n1(apex-S*0.06)}" width="${n1(S*0.016)}" height="${n1(S*0.06)}" fill="#e2f5e0" opacity=".8"/>` +
+      `<rect x="${n1(fx-gw*0.06)}" y="${n1(base-S*0.15)}" width="${n1(gw*0.12)}" height="${n1(S*0.15)}" fill="#fffbd0" opacity=".55"/>` +
+      vines +
+      `<path d="M0 ${n1(base)} Q${n1(W*0.3)} ${n1(base-S*0.01)} ${n1(W*0.5)} ${n1(base)} T${W} ${n1(base-S*0.005)} L${W} ${H} L0 ${H} Z" fill="#03100b"/>` +
+      flies;
+    return {defs, body};
+  },
+
+  faultline(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H);
+    const deck = H*0.6, dx = Math.max(S*0.32, W*0.22), tL = fx-dx, tR = fx+dx, topY = H*0.24;
+    const low = deck - S*0.03, ctrl = 2*low - topY;
+    const defs =
+      linGrad("sky", [[0,"#0e0303"],[.5,"#4a0e0a"],[.82,"#b8401a"],[1,"#e8702a"]]) +
+      linGrad("water", [[0,"#7a2410"],[1,"#120403"]]);
+    let smoke = "";
+    for(let i=0;i<8;i++){
+      smoke += `<ellipse cx="${n1(rand()*W)}" cy="${n1(H*(0.05+rand()*0.3))}" rx="${n1(S*(0.2+rand()*0.25))}" ry="${n1(S*(0.06+rand()*0.06))}" fill="#1a0605" opacity=".75" filter="url(#soft)"/>`;
+    }
+    const gap0 = fx + S*0.05, gap1 = fx + S*0.17;
+    let hangers = "";
+    for(let x = tL + S*0.03; x < tR; x += S*0.03){
+      if(x > gap0 - S*0.01 && x < gap1 + S*0.01) continue;
+      const t = (x - tL)/(tR - tL), cy = (1-t)*(1-t)*topY + 2*t*(1-t)*ctrl + t*t*topY;
+      hangers += `<line x1="${n1(x)}" y1="${n1(cy)}" x2="${n1(x)}" y2="${n1(deck)}"/>`;
+    }
+    const tower = x=>
+      `<rect x="${n1(x-S*0.03)}" y="${n1(topY)}" width="${n1(S*0.016)}" height="${n1(H*0.78-topY)}"/>` +
+      `<rect x="${n1(x+S*0.014)}" y="${n1(topY)}" width="${n1(S*0.016)}" height="${n1(H*0.78-topY)}"/>` +
+      `<rect x="${n1(x-S*0.03)}" y="${n1(topY+S*0.01)}" width="${n1(S*0.06)}" height="${n1(S*0.014)}"/>` +
+      `<rect x="${n1(x-S*0.03)}" y="${n1(topY+(deck-topY)*0.5)}" width="${n1(S*0.06)}" height="${n1(S*0.012)}"/>`;
+    const crack = [[-10, H*0.86]];
+    for(let x=0; x<=W+S*0.05; x+=S*0.05) crack.push([x, H*(0.84+rand()*0.04) + (x>fx-S*0.2 && x<fx+S*0.2 ? -S*0.02 : 0)]);
+    const crackBot = crack.slice().reverse().map(([x,y])=>[x, y + S*(0.006 + (Math.abs(x-fx) < S*0.3 ? 0.02 : 0.008)*rand())]);
+    let embers = "";
+    for(let i=0;i<55;i++){
+      embers += `<circle cx="${n1(rand()*W)}" cy="${n1(H*(0.2+rand()*0.75))}" r="${n1(S*(0.002+rand()*0.004))}" fill="#ffb060" opacity="${(0.3+rand()*0.7).toFixed(2)}"/>`;
+    }
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      smoke +
+      skylineSVG(W, H*0.66, H*0.05, H*0.2, rand, S, "#1e0705", "#ff9a5a", 0.08) +
+      `<rect y="${n1(H*0.64)}" width="${W}" height="${n1(H*0.36)}" fill="url(#water)"/>` +
+      `<ellipse cx="${n1(fx)}" cy="${n1(H*0.68)}" rx="${n1(W*0.5)}" ry="${n1(S*0.04)}" fill="#ff8a3c" opacity=".3" filter="url(#soft)"/>` +
+      `<g fill="#0a0202">${tower(tL)}${tower(tR)}</g>` +
+      `<g fill="none" stroke="#0a0202" stroke-width="${n1(S*0.007)}">` +
+        `<path d="M${n1(tL)} ${n1(topY)} Q${n1(fx)} ${n1(ctrl)} ${n1(tR)} ${n1(topY)}"/>` +
+        `<path d="M${n1(tL)} ${n1(topY)} Q${n1(tL-dx*0.5)} ${n1(deck-S*0.02)} ${n1(-20)} ${n1(deck-S*0.01)}"/>` +
+        `<path d="M${n1(tR)} ${n1(topY)} Q${n1(tR+dx*0.5)} ${n1(deck-S*0.02)} ${n1(W+20)} ${n1(deck-S*0.01)}"/>` +
+      `</g>` +
+      `<g stroke="#0a0202" stroke-width="${n1(S*0.0025)}">${hangers}</g>` +
+      `<rect x="-10" y="${n1(deck)}" width="${n1(gap0+10)}" height="${n1(S*0.02)}" fill="#0a0202"/>` +
+      `<rect x="${n1(gap1)}" y="${n1(deck)}" width="${n1(W-gap1+10)}" height="${n1(S*0.02)}" fill="#0a0202"/>` +
+      `<polygon points="${pts([[gap0+S*0.005,deck+S*0.004],[gap0+S*0.07,deck+S*0.05],[gap0+S*0.06,deck+S*0.068],[gap0-S*0.002,deck+S*0.022]])}" fill="#0a0202"/>` +
+      `<path d="M${n1(gap1)} ${n1(deck+S*0.02)} l${n1(-S*0.012)} ${n1(S*0.03)} l${n1(S*0.01)} ${n1(S*0.01)}" fill="#0a0202"/>` +
+      `<path d="M0 ${n1(H*0.78)} Q${n1(W*0.5)} ${n1(H*0.75)} ${W} ${n1(H*0.78)} L${W} ${H} L0 ${H} Z" fill="#0a0202"/>` +
+      `<polygon points="${pts(crack.concat(crackBot))}" fill="#ff6a1a" filter="url(#glow)" opacity=".9"/>` +
+      `<polygon points="${pts(crack.concat(crackBot))}" fill="#ffc070"/>` +
+      embers;
+    return {defs, body};
+  },
+
+  marrowbone(W,H,rand){
+    const S = Math.min(W,H), fx = focusX(W,H);
+    const xL = fx - S*0.2, xR = fx + S*0.2, farTop = H*0.22, farBot = H*0.68;
+    const defs =
+      linGrad("sky", [[0,"#07051a"],[1,"#2a2058"]]) +
+      linGrad("wallL", [[0,"#0a0718"],[1,"#1f1740"]], 1, 0) +
+      linGrad("wallR", [[0,"#1f1740"],[1,"#0a0718"]], 1, 0) +
+      linGrad("wet", [[0,"#221a48"],[1,"#06041a"]]) +
+      linGrad("cone", [[0,"#ffd28a",.42],[1,"#ffd28a",0]]);
+    const lerp = (a,b,t)=>a+(b-a)*t;
+    let windows = "";
+    const wallWindows = (xa, xb, topA, topB, botA, botB)=>{
+      let out = "";
+      for(let c=0;c<4;c++){
+        const u0 = 0.1 + c*0.22, u1 = u0 + 0.11;
+        for(let r=0;r<5;r++){
+          const v0 = 0.08 + r*0.15, v1 = v0 + 0.08;
+          const q = [[u0,v0],[u1,v0],[u1,v1],[u0,v1]].map(([u,v])=>{
+            const x = lerp(xa,xb,u), top = lerp(topA,topB,u), bot = lerp(botA,botB,u);
+            return [x, lerp(top,bot,v)];
+          });
+          const lit = rand() < 0.22;
+          out += `<polygon points="${pts(q)}" fill="${lit ? "#ffcf7a" : "#0a0718"}" opacity="${lit ? (0.55+rand()*0.4).toFixed(2) : ".9"}"/>`;
+        }
+      }
+      return out;
+    };
+    windows += wallWindows(0, xL, -H*0.05, farTop, H*1.02, farBot);
+    windows += wallWindows(W, xR, -H*0.05, farTop, H*1.02, farBot);
+    const lampX = fx + S*0.13, lampTop = H*0.4, lampBase = H*0.84;
+    const fk = S*0.0032, figX = fx - S*0.07, figY = H*0.8;
+    const body =
+      `<rect width="${W}" height="${H}" fill="url(#sky)"/>` +
+      starsSVG(W,H,rand,25,H*0.25) +
+      skylineSVG(W, farBot, H*0.08, H*0.3, rand, S*0.7, "#120d2c", "#c9b8ff", 0.06) +
+      `<rect y="${n1(H*0.5)}" width="${W}" height="${n1(H*0.2)}" fill="#a99aff" opacity=".14" filter="url(#haze)"/>` +
+      `<polygon points="${pts([[0,H],[xL,farBot],[xR,farBot],[W,H]])}" fill="url(#wet)"/>` +
+      `<polygon points="${pts([[0,-H*0.05],[xL,farTop],[xL,farBot],[0,H*1.02]])}" fill="url(#wallL)"/>` +
+      `<polygon points="${pts([[W,-H*0.05],[xR,farTop],[xR,farBot],[W,H*1.02]])}" fill="url(#wallR)"/>` +
+      windows +
+      `<polygon points="${pts([[lampX-S*0.03,lampTop+S*0.02],[lampX+S*0.03,lampTop+S*0.02],[lampX+S*0.24,lampBase+S*0.02],[lampX-S*0.3,lampBase+S*0.02]])}" fill="url(#cone)" filter="url(#soft)"/>` +
+      `<ellipse cx="${n1(lampX-S*0.03)}" cy="${n1(lampBase)}" rx="${n1(S*0.28)}" ry="${n1(S*0.045)}" fill="#ffd28a" opacity=".22" filter="url(#soft)"/>` +
+      `<rect x="${n1(lampX-S*0.012)}" y="${n1(lampBase)}" width="${n1(S*0.024)}" height="${n1(H-lampBase)}" fill="#ffd28a" opacity=".18" filter="url(#soft)"/>` +
+      `<circle cx="${n1(lampX)}" cy="${n1(lampTop)}" r="${n1(S*0.14)}" fill="#ffd28a" opacity=".35" filter="url(#glow)"/>` +
+      `<rect x="${n1(lampX-S*0.006)}" y="${n1(lampTop)}" width="${n1(S*0.012)}" height="${n1(lampBase-lampTop)}" fill="#05030c"/>` +
+      `<path d="M${n1(lampX-S*0.025)} ${n1(lampTop+S*0.02)} L${n1(lampX+S*0.025)} ${n1(lampTop+S*0.02)} L${n1(lampX+S*0.015)} ${n1(lampTop-S*0.015)} L${n1(lampX-S*0.015)} ${n1(lampTop-S*0.015)} Z" fill="#05030c"/>` +
+      `<rect x="${n1(lampX-S*0.02)}" y="${n1(lampTop+S*0.012)}" width="${n1(S*0.04)}" height="${n1(S*0.01)}" fill="#fff0c8"/>` +
+      `<polygon points="${pts([[figX+fk*8,figY],[figX+fk*30,figY],[figX-fk*90,figY+S*0.07],[figX-fk*120,figY+S*0.06]])}" fill="#000" opacity=".45"/>` +
+      `<g transform="translate(${n1(figX)},${n1(figY - fk*100)}) scale(${fk.toFixed(4)})" fill="#05030c">` +
+        `<ellipse cx="20" cy="10" rx="11.5" ry="2.4"/><path d="M13 10 L14 2 Q20 0 26 2 L27 10 Z"/>` +
+        `<ellipse cx="20" cy="14" rx="5" ry="5.5"/>` +
+        `<path d="M11 18 L29 18 L34 30 L36 76 L31 78 L9 78 L4 76 L6 30 Z"/>` +
+        `<rect x="12" y="76" width="6" height="24"/><rect x="22" y="76" width="6" height="24"/>` +
+        `<path d="M27 2 L27 10 M29 18 L34 30 L36 76" fill="none" stroke="#ffd28a" stroke-opacity=".5" stroke-width="1.1"/>` +
+      `</g>` +
+      rainSVG(W,H,rand,120,0.2,0.15);
+    return {defs, body};
+  },
+};
+
+function sceneSVG(id, W, H, seed, crop){
+  const draw = SCENES[id];
+  if(!draw) return "";
+  const {defs, body} = draw(W, H, makeRng(hashStr(id) + (seed||0)*7919));
+  let svg = svgDoc(W, H, defs, body);
+  if(crop) svg = svg.replace(`viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"`, `viewBox="${crop.join(" ")}" width="${crop[2]}" height="${crop[3]}"`);
+  return svgURI(svg);
+}
+
+const POSTER_IMAGES = {}, BANNER_IMAGES = {};
+Object.keys(SCENES).forEach(id=>{
+  POSTER_IMAGES[id] = sceneSVG(id, POSTER_W, POSTER_H);
+  BANNER_IMAGES[id] = sceneSVG(id, BANNER_W, BANNER_H);
+});
+
+const EPISODE_ART = {};
+function episodeArt(id, i){
+  const key = id + ":" + i;
+  if(!EPISODE_ART[key]){
+    // Each episode gets its own "shot" of the scene: wide, close on the subject, or off to one side
+    const W = 640, H = 360, fx = focusX(W, H);
+    const shots = [null, [fx-170, 110, 340, 191], [30, 60, 400, 225], [fx-230, 150, 400, 225]];
+    EPISODE_ART[key] = sceneSVG(id, W, H, i+1, shots[i % shots.length]);
+  }
+  return EPISODE_ART[key];
+}
+
+/* Stylised cast portraits: silhouette busts lit in the title's colour */
+const AVATAR_ART = {};
+function avatarArt(name, accent){
+  const key = name + "|" + accent;
+  if(AVATAR_ART[key]) return AVATAR_ART[key];
+  const r = makeRng(hashStr(name));
+  const skin = pick(r, ["#f1c9a5","#e0ac84","#c68a5e","#a86d45","#7a4a2c","#5a3520"]);
+  const hair = pick(r, ["#1a120c","#3b2414","#6b4423","#b88a4a","#262626","#9a9a9a"]);
+  const coat = pick(r, ["#1c1c22","#2a1f1a","#14202a","#2b2b2b","#3a1418"]);
+  const style = Math.floor(r()*5);
+  let back = "", front = "";
+  if(style === 0) front = `<path d="M53 68 C50 34 110 34 107 68 C100 50 60 50 53 68 Z" fill="${hair}"/>`;
+  if(style === 1){
+    back = `<path d="M50 72 C44 28 116 28 110 72 L114 122 C104 128 96 108 98 84 L62 84 C64 108 56 128 46 122 Z" fill="${hair}"/>`;
+    front = `<path d="M53 70 C50 34 110 34 107 70 C96 52 66 48 53 70 Z" fill="${hair}"/>`;
+  }
+  if(style === 2) front = `<circle cx="80" cy="34" r="13" fill="${hair}"/><path d="M53 68 C50 36 110 36 107 68 C100 50 60 50 53 68 Z" fill="${hair}"/>`;
+  if(style === 3) front = `<path d="M54 62 C56 38 104 38 106 62 C98 48 62 48 54 62 Z" fill="${hair}" opacity=".55"/>`;
+  if(style === 4) front = [[56,52],[64,42],[75,37],[86,37],[97,42],[104,52],[60,62],[100,62]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="10" fill="${hair}"/>`).join("");
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">` +
+    `<defs><radialGradient id="bg" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="${accent}"/><stop offset="1" stop-color="#0a0a0a"/></radialGradient>` +
+    `<linearGradient id="shade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient></defs>` +
+    `<rect width="160" height="160" fill="url(#bg)"/>` + back +
+    `<rect x="70" y="92" width="20" height="20" fill="${skin}"/>` +
+    `<path d="M18 160 C22 120 50 104 80 104 C110 104 138 120 142 160 Z" fill="${coat}"/>` +
+    `<path d="M68 104 L80 122 L92 104" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="3"/>` +
+    `<ellipse cx="80" cy="70" rx="26" ry="31" fill="${skin}"/>` +
+    `<ellipse cx="80" cy="70" rx="26" ry="31" fill="url(#shade)"/>` + front +
+    `<path d="M18 160 C22 120 50 104 80 104 C110 104 138 120 142 160" fill="none" stroke="${accent}" stroke-opacity=".9" stroke-width="2"/>` +
+    `</svg>`;
+  return (AVATAR_ART[key] = svgURI(svg));
+}
+
+const MOODS = [
+  { key:"cozy", label:"🌙 Cozy" },
+  { key:"thrilling", label:"⚡ Thrilling" },
+  { key:"heartfelt", label:"💔 Heartfelt" },
+  { key:"mindbending", label:"🧠 Mind-bending" },
+  { key:"adrenaline", label:"🔥 Adrenaline" },
+];
+
+const TITLES = [
+  { id:"nocturne", title:"Nocturne", type:"movie", year:2024, duration:"2h 8m", rating:"UA 16+", stars:"4.6",
+    grad:["#4B1122","#0A0A0A"], tags:["Trending","Continue"], progress:62, mood:["heartfelt","cozy"], spoiler:false, icon:"piano",
+    cost:"included", runtimeMin:128, views:812000,
+    recap:"Last time: the pianist agreed to one final show at his old club, and ran into the woman who walked out of his life a decade ago.",
+    desc:"A jazz pianist chasing one last great performance gets pulled into a city that never lets its ghosts rest.",
+    synopsis:"After a decade away, a pianist returns to the city that made him to play one final show — only to find the club, and the people he left behind, haunted by more than memory. A slow-burn noir about ambition, guilt, and the price of a second act.",
+    cast:["R. Vance","M. Idris","T. Solano","K. Reyes","A. Bloom"] },
+  { id:"driftline", title:"Driftline", type:"series", year:2023, duration:"3 Seasons", rating:"UA 13+", stars:"4.8",
+    grad:["#0B3B4A","#0A0A0A"], tags:["Trending","New"], progress:0, mood:["thrilling","mindbending"], spoiler:true, icon:"boat",
+    cost:"included", runtimeMin:47, views:1450000,
+    desc:"Four strangers on a stranded research vessel must survive the storm season — and each other.",
+    synopsis:"When their research vessel loses power mid-ocean, four scientists with very different agendas are forced into an uneasy alliance. As the storm season closes in, old rivalries resurface and the line between survival and sabotage blurs.",
+    cast:["J. Okafor","L. Byrne","S. Kade","P. Marchetti"],
+    episodes:[
+      {title:"Dead Reckoning", desc:"The crew loses contact with the mainland.", dur:"48m"},
+      {title:"Low Water", desc:"Rationing begins as tempers rise.", dur:"44m"},
+      {title:"The Second Storm", desc:"A distress signal changes everything.", dur:"51m"},
+      {title:"Ballast", desc:"Someone on board isn't who they claim.", dur:"46m"},
+    ]},
+  { id:"redcliff", title:"Redcliff", type:"movie", year:2022, duration:"1h 54m", rating:"A", stars:"4.3",
+    grad:["#5A2A0A","#0A0A0A"], tags:["New"], progress:0, mood:["thrilling"], spoiler:false, icon:"quarry",
+    cost:"rental", runtimeMin:114, views:68000,
+    desc:"A small-town sheriff uncovers a decades-old secret buried beneath the quarry.",
+    synopsis:"When a landslide exposes something in the old quarry, Sheriff Dana Voss has to decide how far she's willing to go to protect a town built on a lie thirty years in the making.",
+    cast:["D. Voss (C. Marlow)","H. Grant","N. Ibsen"] },
+  { id:"paperlanterns", title:"Paper Lanterns", type:"series", year:2024, duration:"1 Season", rating:"U", stars:"4.7",
+    grad:["#7A1F3D","#0A0A0A"], tags:["Continue"], progress:28, mood:["cozy","heartfelt"], spoiler:false, icon:"lantern",
+    cost:"included", runtimeMin:39, views:41000,
+    recap:"Last time: Grandmother Lim handed the shop's ledger to her granddaughter, the night before the wiring inspector was due to arrive.",
+    desc:"Three generations of a family run a lantern shop through a century of change.",
+    synopsis:"Spanning three generations, this quiet family drama follows the Lim family's lantern shop through war, migration, and reinvention — and the traditions that hold a family together when everything else changes.",
+    cast:["W. Lim","F. Lim","C. Osei","Y. Tran"],
+    episodes:[
+      {title:"The First Flame", desc:"Grandmother Lim opens the shop in 1948.", dur:"39m"},
+      {title:"Monsoon Season", desc:"The shop nearly doesn't survive the flood.", dur:"41m"},
+      {title:"New Wiring", desc:"The next generation wants to modernize.", dur:"37m"},
+    ]},
+  { id:"ironhour", title:"Iron Hour", type:"movie", year:2021, duration:"2h 16m", rating:"UA 16+", stars:"4.2",
+    grad:["#1B1F2E","#0A0A0A"], tags:["Trending"], progress:0, mood:["adrenaline","heartfelt"], spoiler:false, icon:"glove",
+    cost:"included", runtimeMin:136, views:960000,
+    desc:"An ex-boxer trains a reluctant teenager for a fight neither of them can afford to lose.",
+    synopsis:"Ten years out of the ring, Marcus Vale reluctantly agrees to train the daughter of an old rival for the biggest amateur fight of her life — and finds himself fighting his own past in the process.",
+    cast:["M. Vale (J. Torres)","A. Whitfield","B. Nakamura"] },
+  { id:"glasshouse", title:"The Glasshouse", type:"series", year:2025, duration:"2 Seasons", rating:"UA 13+", stars:"4.5",
+    grad:["#0F3D2E","#0A0A0A"], tags:["New"], progress:0, mood:["cozy","mindbending"], spoiler:true, icon:"greenhouse",
+    cost:"extra", runtimeMin:43, views:53000,
+    desc:"A botanist inherits a failing greenhouse and a family feud that's older than the vines.",
+    synopsis:"When Elena inherits her estranged grandmother's botanical estate, she also inherits a decades-old dispute with the neighboring vineyard — and a greenhouse full of secrets neither family wanted uncovered.",
+    cast:["E. Marsh","G. Aubert","R. Kessler"],
+    episodes:[
+      {title:"Inheritance", desc:"Elena arrives to a house in disrepair.", dur:"42m"},
+      {title:"Old Roots", desc:"The neighbors make their history known.", dur:"45m"},
+    ]},
+  { id:"faultline", title:"Fault Line", type:"movie", year:2023, duration:"1h 47m", rating:"A", stars:"4.0",
+    grad:["#3B0F0F","#0A0A0A"], tags:["Trending"], progress:0, mood:["thrilling","adrenaline"], spoiler:false, icon:"bridge",
+    cost:"rental", runtimeMin:107, views:884000,
+    desc:"A structural engineer races to evacuate a city she helped build before it collapses.",
+    synopsis:"Twenty years after designing the city's flagship bridge, engineer Priya Nair discovers a fatal flaw in her own blueprints — with twelve hours before rush hour.",
+    cast:["P. Nair","D. Okonkwo","L. Fischer"] },
+  { id:"marrowbone", title:"Marrowbone Lane", type:"series", year:2020, duration:"4 Seasons", rating:"UA 16+", stars:"4.9",
+    grad:["#241B4A","#0A0A0A"], tags:["New"], progress:0, mood:["mindbending","thrilling"], spoiler:false, icon:"magnifier",
+    cost:"included", runtimeMin:49, views:39000,
+    desc:"A detective duo work cold cases in a city that would rather forget them.",
+    synopsis:"Detectives Ruiz and Okafor are handed the department's coldest cases — the ones everyone else gave up on — and find that some of this city's oldest secrets were buried on purpose.",
+    cast:["A. Ruiz","T. Okafor","M. Delgado","S. Voss"],
+    episodes:[
+      {title:"Cold Storage", desc:"A twelve-year-old case resurfaces.", dur:"49m"},
+      {title:"Chain of Custody", desc:"Evidence goes missing from the archive.", dur:"47m"},
+      {title:"The Informant", desc:"An old contact resurfaces with a warning.", dur:"52m"},
+    ]},
+];
+
+const COST_META = {
+  included: { label:"Included", color:"#2fae6a" },
+  rental:   { label:"Rental",   color:"#d99a2b" },
+  extra:    { label:"Extra",    color:"#9a5cf0" },
+};
+
+const TIME_BUDGETS = [
+  { key:"short",  label:"⏱ Under 30 min", test:m=>m<30 },
+  { key:"hour",   label:"⏱ Under 1 hr",   test:m=>m<60 },
+  { key:"medium", label:"⏱ 1–2 hrs",      test:m=>m>=60 && m<=120 },
+  { key:"long",   label:"⏱ 2+ hrs",       test:m=>m>120 },
+];
+
+const CATEGORIES = ["All","Movies","Series","Drama","Thriller"];
+let activeChip = "All";
+let heroId = "nocturne";
+let currentId = null;
+let playerId = null;
+let spoilerSafe = true;
+let revealed = new Set();
+let activeMood = null;
+
+/* ---------------- Card rendering ---------------- */
+function posterHTML(t, small){
+  const g = `linear-gradient(160deg, ${t.grad[0]}, ${t.grad[1]})`;
+  const isHidden = spoilerSafe && t.spoiler && !revealed.has(t.id);
+  if(isHidden){
+    return `
+      <div class="poster spoiler-poster" style="background:${g};" onclick="revealSpoiler(event,'${t.id}')">
+        <img class="poster-bg" src="${POSTER_IMAGES[t.id] || ""}" alt="" aria-hidden="true">
+        <span class="spoiler-inner">
+          <span class="spoiler-icon">🙈</span>
+          <span class="spoiler-label">Spoiler-safe<br><em>Tap to reveal</em></span>
+        </span>
+      </div>`;
+  }
+  const imgSrc = POSTER_IMAGES[t.id] || "";
+  const cm = COST_META[t.cost];
+  const costBadge = cm ? `<span class="cost-badge" style="background:${cm.color};">${cm.label}</span>` : "";
+  return `
+    <div class="poster" style="background:${g};">
+      <img class="poster-bg" src="${imgSrc}" alt="${t.title} poster art" loading="lazy">
+      ${costBadge}
+      <span class="title-on-poster">${t.title}</span>
+    </div>`;
+}
+
+function cardHTML(t, opts={}){
+  const progressHTML = opts.showProgress && t.progress ? `<div class="progress-track"><div class="progress-fill" style="width:${t.progress}%;"></div></div>` : "";
+  return `
+    <div class="card" onclick="openDetail('${t.id}')">
+      ${posterHTML(t)}
+      <div class="cardlabel">${t.title}</div>
+      ${opts.showMeta ? `<div class="cardmeta">${t.year} • ${t.type==="series"?"Series":"Movie"}</div>` : ""}
+      ${progressHTML}
+    </div>`;
+}
+
+function renderRow(elId, items, opts={}){
+  document.getElementById(elId).innerHTML = items.map(t=>cardHTML(t,opts)).join("");
+}
+
+/* ---------------- Home ---------------- */
+function renderHome(){
+  const hero = TITLES.find(t=>t.id===heroId);
+  document.getElementById("heroTitle").textContent = hero.title;
+  document.getElementById("heroDesc").textContent = hero.desc;
+  document.getElementById("heroBg").style.background = `linear-gradient(160deg, ${hero.grad[0]}, ${hero.grad[1]})`;
+  // The mobile hero is portrait-shaped, so it uses the poster art instead of the wide banner
+  const heroArt = window.matchMedia("(max-width:768px)").matches ? POSTER_IMAGES : BANNER_IMAGES;
+  if(heroArt[hero.id]){
+    document.getElementById("heroBg").style.backgroundImage = `url("${heroArt[hero.id]}")`;
+    document.getElementById("heroBg").style.backgroundSize = "cover";
+    document.getElementById("heroBg").style.backgroundPosition = "center";
+  }
+
+  renderRow("row-continue", TITLES.filter(t=>t.tags.includes("Continue")), {showProgress:true});
+  renderRow("row-trending", TITLES.filter(t=>t.tags.includes("Trending")), {});
+  renderRow("row-new", TITLES.filter(t=>t.tags.includes("New")), {});
+  renderMoodChips();
+  renderMoodResult();
+  renderTimeChips();
+  renderTimeResult();
+  renderHiddenGems();
+}
+
+/* ---------------- Time Budget Browsing (unique feature) ---------------- */
+let activeTimeBudget = null;
+function renderTimeChips(){
+  document.getElementById("timeRow").innerHTML = TIME_BUDGETS.map(b=>
+    `<button class="mood-chip ${activeTimeBudget===b.key?'active':''}" onclick="setTimeBudget('${b.key}')">${b.label}</button>`
+  ).join("");
+}
+function setTimeBudget(key){
+  activeTimeBudget = (activeTimeBudget===key) ? null : key;
+  renderTimeChips();
+  renderTimeResult();
+}
+function renderTimeResult(){
+  const wrap = document.getElementById("timeResult");
+  if(!activeTimeBudget){
+    wrap.innerHTML = `<div class="mood-empty">Tell us how long you've got and we'll match titles to it (movies by runtime, series by episode length).</div>`;
+    return;
+  }
+  const budget = TIME_BUDGETS.find(b=>b.key===activeTimeBudget);
+  const matches = TITLES.filter(t=>budget.test(t.runtimeMin));
+  if(matches.length===0){
+    wrap.innerHTML = `<div class="mood-empty">Nothing fits that window right now.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="row-title" style="font-size:16px;">Fits "${budget.label.replace('⏱ ','')}"</div><div class="card-row">${matches.map(t=>cardHTML(t,{})).join("")}</div>`;
+}
+
+/* ---------------- Hidden Gems (unique feature) ---------------- */
+function renderHiddenGems(){
+  const gems = TITLES.filter(t=>parseFloat(t.stars) >= 4.5 && t.views < 100000)
+                      .sort((a,b)=>parseFloat(b.stars)-parseFloat(a.stars));
+  renderRow("row-gems", gems, {});
+}
+
+/* ---------------- Mood picker (unique feature) ---------------- */
+function renderMoodChips(){
+  document.getElementById("moodRow").innerHTML = MOODS.map(m=>
+    `<button class="mood-chip ${activeMood===m.key?'active':''}" onclick="setMood('${m.key}')">${m.label}</button>`
+  ).join("");
+}
+function setMood(key){
+  activeMood = (activeMood===key) ? null : key;
+  renderMoodChips();
+  renderMoodResult();
+}
+function renderMoodResult(){
+  const wrap = document.getElementById("moodResult");
+  if(!activeMood){
+    wrap.innerHTML = `<div class="mood-empty">Pick a mood above and we'll pull together a row just for it.</div>`;
+    return;
+  }
+  const matches = TITLES.filter(t=>t.mood && t.mood.includes(activeMood));
+  if(matches.length===0){
+    wrap.innerHTML = `<div class="mood-empty">Nothing matches that mood yet — check back soon.</div>`;
+    return;
+  }
+  const label = MOODS.find(m=>m.key===activeMood).label;
+  wrap.innerHTML = `<div class="row-title" style="font-size:16px;">For your mood: ${label}</div><div class="card-row">${matches.map(t=>cardHTML(t,{})).join("")}</div>`;
+}
+
+/* ---------------- Spoiler-Safe Mode (unique feature) ---------------- */
+function toggleSpoilerSafe(){
+  spoilerSafe = !spoilerSafe;
+  const sw = document.getElementById("spoilerSwitch");
+  sw.classList.toggle("on", spoilerSafe);
+  renderHome();
+}
+function revealSpoiler(evt, id){
+  evt.stopPropagation();
+  revealed.add(id);
+  renderHome();
+}
+
+/* ---------------- Watch Party (unique feature) ---------------- */
+function openWatchParty(){
+  const t = TITLES.find(x=>x.id===currentId) || TITLES.find(x=>x.id===playerId) || TITLES.find(x=>x.id===heroId);
+  const code = "SH-" + Math.random().toString(36).slice(2,6).toUpperCase();
+  document.getElementById("wpModalBody").innerHTML = `
+    <h3>👥 Watch Party ready</h3>
+    <p>Watching <strong>${t ? t.title : 'this title'}</strong> together — anyone with the code joins in and playback stays in sync for everyone.</p>
+    <div class="wp-code">${code}</div>
+    <div class="wp-row">
+      <button class="btn btn-outline" onclick="copyWatchPartyLink('${code}')">Copy Invite Link</button>
+      <button class="btn btn-primary" onclick="closeWatchParty()">Done</button>
+    </div>
+  `;
+  document.getElementById("wpBackdrop").classList.add("show");
+}
+function copyWatchPartyLink(code){
+  const link = window.location.origin + window.location.pathname + "?party=" + code;
+  if(navigator.clipboard){ navigator.clipboard.writeText(link).catch(()=>{}); }
+  const btn = event.target;
+  const old = btn.textContent;
+  btn.textContent = "Copied!";
+  setTimeout(()=>{ btn.textContent = old; }, 1500);
+}
+function closeWatchParty(){
+  document.getElementById("wpBackdrop").classList.remove("show");
+}
+
+/* ---------------- Search ---------------- */
+function renderChips(){
+  document.getElementById("chipRow").innerHTML = CATEGORIES.map(c=>
+    `<button class="chip ${c===activeChip?'active':''}" onclick="setChip('${c}')">${c}</button>`
+  ).join("");
+}
+function setChip(c){ activeChip = c; renderChips(); renderSearch(); }
+
+function renderSearch(){
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  let results = TITLES.filter(t=>{
+    const matchesQuery = !q || t.title.toLowerCase().includes(q);
+    const matchesChip =
+      activeChip === "All" ? true :
+      activeChip === "Movies" ? t.type==="movie" :
+      activeChip === "Series" ? t.type==="series" :
+      true; // Drama/Thriller are decorative filters in this concept
+    return matchesQuery && matchesChip;
+  });
+  const grid = document.getElementById("searchResults");
+  if(results.length===0){
+    grid.innerHTML = `<div class="no-results" style="grid-column:1/-1;">No titles match your search.</div>`;
+    return;
+  }
+  grid.innerHTML = results.map(t=>cardHTML(t,{showMeta:true})).join("");
+}
+
+/* ---------------- Detail ---------------- */
+function openDetail(id){
+  currentId = id;
+  const t = TITLES.find(x=>x.id===id);
+  document.getElementById("detailBg").style.background = `linear-gradient(160deg, ${t.grad[0]}, ${t.grad[1]})`;
+  if(BANNER_IMAGES[t.id]){
+    document.getElementById("detailBg").style.backgroundImage = `url("${BANNER_IMAGES[t.id]}")`;
+    document.getElementById("detailBg").style.backgroundSize = "cover";
+    document.getElementById("detailBg").style.backgroundPosition = "center";
+  }
+  document.getElementById("detailTitle").textContent = t.title;
+  const cmD = COST_META[t.cost];
+  document.getElementById("detailMeta").innerHTML =
+    `<span>${t.year}</span><span class="dot"></span><span>${t.duration}</span><span class="dot"></span><span>${t.rating}</span><span class="dot"></span><span>★ ${t.stars}</span>` +
+    (cmD ? `<span class="cost-badge-inline" style="background:${cmD.color};">${cmD.label}</span>` : "");
+  document.getElementById("detailSynopsis").textContent = t.synopsis;
+  const recapBox = document.getElementById("recapBox");
+  if(t.progress > 0 && t.recap){
+    recapBox.style.display = "block";
+    document.getElementById("recapText").textContent = t.recap;
+  } else {
+    recapBox.style.display = "none";
+  }
+  document.getElementById("castRow").innerHTML = t.cast.map(name=>`
+    <div class="cast-item">
+      <img class="cast-avatar" src="${avatarArt(name, t.grad[0])}" alt="${name}">
+      <div class="name">${name}</div>
+    </div>`).join("");
+
+  const epBlock = document.getElementById("episodesBlock");
+  if(t.episodes && t.episodes.length){
+    epBlock.style.display = "";
+    document.getElementById("episodeList").innerHTML = t.episodes.map((e,i)=>`
+      <div class="ep-row">
+        <img class="ep-thumb" src="${episodeArt(t.id, i)}" alt="${e.title} still" loading="lazy">
+        <div class="ep-main">
+          <div class="ep-title">${i+1}. ${e.title}</div>
+          <div class="ep-desc">${e.desc}</div>
+        </div>
+        <div class="ep-duration">${e.dur}</div>
+        <button class="ep-play" onclick="openPlayer('${t.id}', ${i})" aria-label="Play episode">▶</button>
+      </div>`).join("");
+  } else {
+    epBlock.style.display = "none";
+  }
+
+  const more = TITLES.filter(x=>x.id!==id).slice(0,6);
+  renderRow("moreLikeThis", more, {});
+
+  const addBtn = document.getElementById("addListBtn");
+  addBtn.textContent = "+ Add to List";
+  addBtn.classList.remove("btn-primary-added");
+
+  showView("detail");
+}
+
+function toggleAddList(btn){
+  const added = btn.dataset.added === "1";
+  btn.dataset.added = added ? "0" : "1";
+  btn.textContent = added ? "+ Add to List" : "✓ Added";
+}
+
+/* ---------------- Player ---------------- */
+function openPlayer(id, epIndex){
+  playerId = id;
+  const t = TITLES.find(x=>x.id===id);
+  document.getElementById("videoArea").style.background = `linear-gradient(160deg, ${t.grad[0]}, ${t.grad[1]})`;
+  if(BANNER_IMAGES[t.id]){
+    document.getElementById("videoArea").style.backgroundImage = `url("${BANNER_IMAGES[t.id]}")`;
+    document.getElementById("videoArea").style.backgroundSize = "cover";
+    document.getElementById("videoArea").style.backgroundPosition = "center";
+  }
+  if(t.episodes && t.episodes.length){
+    const idx = (typeof epIndex === "number") ? epIndex : 0;
+    document.getElementById("playerTitle").textContent = t.episodes[idx].title;
+    document.getElementById("playerSub").textContent = `${t.title} — S1:E${idx+1}`;
+    document.getElementById("playerDuration").textContent = t.episodes[idx].dur;
+  } else {
+    document.getElementById("playerTitle").textContent = t.title;
+    document.getElementById("playerSub").textContent = `${t.year} • ${t.duration}`;
+    document.getElementById("playerDuration").textContent = t.duration;
+  }
+  const upNext = TITLES.filter(x=>x.id!==id).slice(0,5);
+  renderRow("upNextRow", upNext, {});
+  showView("player");
+}
+
+/* ---------------- View switching ---------------- */
+function showView(name){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById(name).classList.add("active");
+  document.querySelectorAll("nav.mainnav button, nav.tabbar button").forEach(b=>{
+    b.classList.toggle("active", b.dataset.view === name);
+  });
+  window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
+  if(name === "search"){ renderChips(); renderSearch(); }
+}
+
+/* ---------------- Init ---------------- */
+renderHome();
+renderChips();
+renderSearch();
+</script>
+</body>
+</html>
